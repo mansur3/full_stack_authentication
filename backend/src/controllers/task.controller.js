@@ -48,7 +48,8 @@ router.post(
 //read
 router.get("/tasks", authenticate, async (req, res) => {
   try {
-    let tasks = Task.find().lean().exec();
+    const status = req.query.status || "All";
+    let tasks = await Task.find(status == "All" ? {} : { status: status });
     return res.status(200).send({
       data: tasks,
     });
@@ -63,7 +64,7 @@ router.get("/task/:id", authenticate, async (req, res) => {
   try {
     const id = req.params.id;
 
-    const task = Task.findById(id);
+    const task = await Task.findById(id);
     if (!task) {
       return res.status(404).send({
         message: "Task is not found.",
@@ -83,7 +84,10 @@ router.get("/task/:id", authenticate, async (req, res) => {
 router.patch("/task/:id", authenticate, async (req, res) => {
   try {
     const { id } = req.params;
-    const task = Task.findByIdAndUpdate(id, req.body);
+    const task = await Task.findByIdAndUpdate(id, req.body, {
+      new: true, // return the updated document
+      runValidators: true, // ensure the update adheres to the schema
+    });
     if (!task) {
       return res.status(404).send({
         message: "Task is not found.",
@@ -105,7 +109,7 @@ router.patch("/task/:id", authenticate, async (req, res) => {
 router.delete("/task/:id", authenticate, async (req, res) => {
   try {
     const { id } = req.params;
-    const task = Task.findByIdAndDelete(id);
+    const task = await Task.findByIdAndDelete(id);
     if (!task) {
       return res.status(404).send({
         message: "Task is not found",

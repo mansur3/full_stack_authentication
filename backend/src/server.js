@@ -11,11 +11,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.json());
 
-app.use("/api", async (req, res) => {
-  return res.status(200).send({
-    message: "We;lcome to the worle.",
-  });
-});
+// app.use("/api", async (req, res) => {
+//   return res.status(200).send({
+//     message: "We;lcome to the worle.",
+//   });
+// });
 
 //Authentication controller
 const userController = require("./controllers/user.controller");

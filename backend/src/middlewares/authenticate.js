@@ -18,19 +18,21 @@ function verifyToken(token) {
 
 async function authenticate(req, res, next) {
   const bearerToken = req.headers.authorization;
-  if (!bearerToken || !bearerToken.startsWith("Bearer ")) {
+  const check = !bearerToken || !bearerToken.startsWith("Bearer ");
+  if (check) {
     return res.status(401).send({ message: "Please Provide a bearer token" });
   }
   const token = bearerToken.split(" ")[1];
   try {
-    const { user } = await verifyToken(token);
-    if (user.token) {
-      req.user = user;
+    const resp = await verifyToken(token);
+    if (resp.tokenData) {
+      req.user = resp.tokenData;
       return next();
     } else {
       return res.status(401).send({ message: "Token is invalid" });
     }
   } catch (err) {
+    console.log(err);
     return res
       .status(401)
       .send({ message: "Please provide a valid bearer token" });
