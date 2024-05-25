@@ -5,6 +5,24 @@ const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 
 const User = require("../models/user.models");
+const authenticate = require("../middlewares/authenticate");
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Specify the destination directory
+  },
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+    ); // Rename the file if needed
+  },
+});
+
+// Initialize Multer with the storage configuration
+const upload = multer({ storage: storage });
 
 const jwtSecretKey = process.env.JWT_SECRET_KEY;
 
@@ -113,5 +131,81 @@ router.post(
     }
   }
 );
+
+router.get("/user", authenticate, async (req, res) => {
+  // const id = req.param.id;
+  // console.log(req.user);
+  const id = req.user._id;
+  try {
+    const user = await User.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).send({
+        message: "User is not found",
+      });
+    }
+    return res.status(200).send({
+      message: "success",
+      data: user,
+    });
+  } catch (err) {
+    return res.status(500).send({
+      message: err.toString(),
+    });
+  }
+});
+
+router.post(
+  "/profile/:id",
+  authenticate,
+  upload.single("avatar"),
+  async (req, res) => {
+    try {
+      const user = await User.findByIdAndUpdate(
+        { _id: req.params.id },
+        { profile: req.file?.path },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      if (!user) {
+        return res.status(404).send({
+          message: "User is not found.",
+        });
+      }
+      return res.status(200).send({
+        messsage: "success",
+        data: user,
+      });
+    } catch (err) {
+      return res.status(500).send({
+        message: err.toString(),
+      });
+    }
+  }
+);
+
+router.patch("/user/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const user = await User.findByIdAndUpdate({ _id: id }, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!user) {
+      return res.status(404).send({
+        message: "user is not found.",
+      });
+    }
+    return res.status(200).send({
+      message: "Updated",
+      data: user,
+    });
+  } catch (err) {
+    return res.status(500).send({
+      message: err.toString(),
+    });
+  }
+});
 
 module.exports = router;

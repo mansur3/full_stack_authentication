@@ -11,6 +11,12 @@ const userSchema = new Schema(
     password: { type: String, required: true },
     country: { type: String, required: false },
     phone_number: { type: String, required: false },
+    about_your_self: { type: String, required: false },
+    street: { type: String, required: false },
+    city: { type: String, required: false },
+    state: { type: String, required: false },
+    zip: { type: String, required: false },
+    profile: { type: String, required: false },
   },
   {
     versionKey: false,
